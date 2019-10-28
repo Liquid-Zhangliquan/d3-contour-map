@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "npm run serve",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "core-js": "^3.3.2",
+    "d3": "^5.12.0",
+    "d3-contour": "^1.3.2",
+    "ol": "^6.0.1",
     "vue": "^2.6.10"
   },
   "devDependencies": {
@@ -23,13 +27,15 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": false
     },
     "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+      "plugin:vue/essential"
     ],
-    "rules": {},
+    "rules": {
+      "no-console":"off",
+      "no-debugger":"off"
+    },
     "parserOptions": {
       "parser": "babel-eslint"
     }
