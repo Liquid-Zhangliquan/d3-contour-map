@@ -12,7 +12,7 @@ import Image from 'ol/layer/Image';
 import ImageCanvas from 'ol/source/ImageCanvas';
 import * as d3 from 'd3';
 import * as DC from 'd3-contour';
-import Regioncoord from './util/mapBorder/gx';
+import Regioncoord from '../../../util/mapBorder/gx';
 export default {
   name: 'app',
   components: {},
@@ -56,7 +56,8 @@ export default {
             const cw = Math.ceil(pxRegion.xmax);
             const ch = Math.ceil(pxRegion.ymax);
 
-            const idwdata = olIDW(pxdata.data, cw, ch);
+            // const idwdata = olIDW(pxdata.data, cw, ch);
+            const idwdata = []
             let canvas = document.createElement('canvas');
             canvas.width = cw;
             canvas.height = ch;
