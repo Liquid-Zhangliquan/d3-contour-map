@@ -36,7 +36,6 @@ export default {
           zoom: 7
         })
       });
-      debugger;
       fetch('/data/TEM.json').then(response => {
         response.json().then(res => {
           const data = res.data;
@@ -157,7 +156,7 @@ export default {
               let xmin = 9999;
               let ymin = 9999;
               let len = data.length;
-              for (let i = 0; i < 50; i++) {
+              for (let i = 0; i < 50; i++) { // 全部数据1600+ 耗时四秒以上
                 const p = coordToPoint(data[i].Lon, data[i].Lat, xscale, yscale, top, left);
                 if (i === 0) {
                   xmax = p[0];
@@ -295,7 +294,8 @@ export default {
             }
             return canvas;
           },
-          projection: 'EPSG:4326'
+          projection: 'EPSG:4326',
+          ratio: 1
         })
       });
       //向map添加图层

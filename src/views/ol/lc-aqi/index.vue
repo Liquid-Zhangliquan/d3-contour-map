@@ -17,7 +17,7 @@ export default {
   name: 'ol-lc',
   components: {},
   mounted() {
-    console.log('mounted')
+    console.log('mounted');
     this.mapInit();
   },
   methods: {
@@ -45,6 +45,16 @@ export default {
       });
     },
     contourInit(map, origindata) {
+      // TODO
+      // 1.zoom大时，PXregion异常
+      // 2.等值线添加label
+      // 3.引入webworker 多线程计算
+      // 4.idw插值算法优化的思路
+      // （1）画布以（0，0）为起点 xmax => width , ymax => height
+      // 1）直接在region的extent里计算
+      // 2）直接在region里插值计算（需要判断空间关系，范围内计算，范围外不计算）
+      // （2）画布以（xmin,ymin)为起点 xmax-xmin => width , ymax-ymin => height
+      // 3）region的extent(xmax-xmin,ymax-ymin)计算插值，然后canvas偏移至（xmin,ymin)
       const canvasLayer = new Image({
         source: new ImageCanvas({
           canvasFunction: (extent, resolution, pixelRatio, size, projection) => {
@@ -111,7 +121,7 @@ export default {
               context.stroke();
             }
 
-             // 获取样本数据的屏幕坐标
+            // 获取样本数据的屏幕坐标
             function getPxData(data, xscale, yscale, top, left) {
               const me = this;
               const _data = [];
@@ -233,7 +243,8 @@ export default {
             }
             return canvas;
           },
-          projection: 'EPSG:4326'
+          projection: 'EPSG:4326',
+          ratio: 1
         })
       });
       //向map添加图层
