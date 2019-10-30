@@ -14,7 +14,7 @@ import * as d3 from 'd3';
 import * as DC from 'd3-contour';
 import Regioncoord from '../../../util/mapBorder/lc';
 export default {
-  name: 'app',
+  name: 'ol-lc',
   components: {},
   mounted() {
     console.log('mounted')

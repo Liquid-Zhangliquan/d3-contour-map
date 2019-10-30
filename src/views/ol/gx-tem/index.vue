@@ -14,7 +14,7 @@ import * as d3 from 'd3';
 import * as DC from 'd3-contour';
 import Regioncoord from '../../../util/mapBorder/gx';
 export default {
-  name: 'app',
+  name: 'ol-gx',
   components: {},
   mounted() {
     this.mapInit();
@@ -31,11 +31,12 @@ export default {
         layers: layers,
         target: 'olmap',
         view: new View({
-          center: [115.79, 36.142],
+          center: [108.22, 22.48],
           projection: 'EPSG:4326',
-          zoom: 8
+          zoom: 7
         })
       });
+      debugger;
       fetch('/data/TEM.json').then(response => {
         response.json().then(res => {
           const data = res.data;
@@ -48,6 +49,10 @@ export default {
         source: new ImageCanvas({
           canvasFunction: (extent, resolution, pixelRatio, size, projection) => {
             const [width, height] = size;
+            // const _map = map;
+            // const mapsize = _map.getSize();
+            // const width = mapsize[0];
+            // const height = mapsize[1];
             const [left, bottom, right, top] = extent;
             const xscale = width / (right - left);
             const yscale = height / (top - bottom);
@@ -56,8 +61,8 @@ export default {
             const cw = Math.ceil(pxRegion.xmax);
             const ch = Math.ceil(pxRegion.ymax);
 
-            // const idwdata = olIDW(pxdata.data, cw, ch);
-            const idwdata = []
+            const idwdata = olIDW(pxdata.data, cw, ch);
+            // const idwdata = [];
             let canvas = document.createElement('canvas');
             canvas.width = cw;
             canvas.height = ch;
@@ -82,12 +87,44 @@ export default {
             context.lineWidth = 2; //线条宽度
 
             const colors = [
-              { min: 0, max: 50, color: [0, 229, 0] },
-              { min: 50, max: 100, color: [255, 255, 0] },
-              { min: 100, max: 150, color: [255, 126, 0] },
-              { min: 150, max: 200, color: [254, 0, 0] },
-              { min: 200, max: 250, color: [152, 0, 75] },
-              { min: 250, max: 300, color: [126, 1, 35] }
+              { max: -30, color: '#020c64' },
+              { min: -30, max: -28, color: '#071e78' },
+              { min: -28, max: -26, color: '#11318b' },
+              { min: -26, max: -24, color: '#1b449f' },
+              { min: -24, max: -22, color: '#2657b3' },
+              { min: -22, max: -20, color: '#306ac7' },
+              { min: -20, max: -18, color: '#3b7edb' },
+              { min: -20, max: -18, color: '#3b7edb' },
+              { min: -18, max: -16, color: '#4e8add' },
+              { min: -16, max: -14, color: '#6196e0' },
+              { min: -14, max: -12, color: '#74a3e2' },
+              { min: -12, max: -10, color: '#87afe5' },
+              { min: -10, max: -8, color: '#9bbce8' },
+              { min: -8, max: -6, color: '#9ac4dc' },
+              { min: -6, max: -4, color: '#99cdd0' },
+              { min: -4, max: -2, color: '#98d6c4' },
+              { min: -2, max: 0, color: '#97e8ad' },
+              { min: 0, max: 2, color: '#d7de7e' },
+              { min: 2, max: 4, color: '#eadb70' },
+              { min: 4, max: 6, color: '#f4d963' },
+              { min: 6, max: 8, color: '#facc4f' },
+              { min: 8, max: 10, color: '#f7b42d' },
+              { min: 10, max: 12, color: '#f29b00' },
+              { min: 12, max: 14, color: '#f19303' },
+              { min: 14, max: 16, color: '#f0840a' },
+              { min: 16, max: 18, color: '#ef7511' },
+              { min: 18, max: 20, color: '#ee6618' },
+              { min: 20, max: 22, color: '#ee581f' },
+              { min: 22, max: 24, color: '#e74b1a' },
+              { min: 24, max: 26, color: '#e03f16' },
+              { min: 26, max: 28, color: '#d93312' },
+              { min: 28, max: 30, color: '#d0240e' },
+              { min: 30, max: 32, color: '#c20003' },
+              { min: 32, max: 34, color: '#b50109' },
+              { min: 34, max: 35, color: '#a90210' },
+              { min: 35, max: 37, color: '#8a0519' },
+              { min: 37, max: 40, color: '#6f0015' },
+              { min: 40, color: '#6f0015' }
             ];
 
             //绘图登高线图
@@ -111,7 +148,7 @@ export default {
               context.stroke();
             }
 
-             // 获取样本数据的屏幕坐标
+            // 获取样本数据的屏幕坐标
             function getPxData(data, xscale, yscale, top, left) {
               const me = this;
               const _data = [];
@@ -133,7 +170,7 @@ export default {
                 _data.push({
                   x: p[0],
                   y: p[1],
-                  value: data[i].TEM
+                  value: Number(data[i].TEM)
                 });
               }
               return {
@@ -227,9 +264,34 @@ export default {
             function getColor(colors, value) {
               var len = colors.length;
               for (var i = 0; i < len; i++) {
-                if (value > colors[i].min && value <= colors[i].max)
-                  return d3.rgb(colors[i].color[0], colors[i].color[1], colors[i].color[2]);
+                if (value > colors[i].min && value <= colors[i].max) {
+                  const color = colorRGB(colors[i].color);
+                  return d3.rgb(color[0], color[1], color[2]);
+                }
               }
+            }
+
+            function colorRGB(color) {
+              let sColor = color.toLowerCase();
+              // 处理六位的颜色值
+              const sColorChange = [];
+              // 十六进制颜色值的正则表达式
+              const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+              // 如果是16进制颜色
+              if (sColor && reg.test(sColor)) {
+                if (sColor.length === 4) {
+                  let sColorNew = '#';
+                  for (let i = 1; i < 4; i += 1) {
+                    sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
+                  }
+                  sColor = sColorNew;
+                }
+
+                for (let i = 1; i < 7; i += 2) {
+                  sColorChange.push(parseInt('0x' + sColor.slice(i, i + 2)));
+                }
+              }
+              return sColorChange;
             }
             return canvas;
           },
