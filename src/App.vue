@@ -1,18 +1,22 @@
 <template>
   <div id="app">
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app'
+  name: 'app',
+  mounted(){
+    console.log('app')
+  }
 }
 </script>
 
 <style>
 html,
-body {
+body,
+#app {
   width: 100%;
   height: 100%;
   padding: 0px;

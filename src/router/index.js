@@ -1,12 +1,12 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-const home = () => import('../views/ol/lc-aqi')
+import home from '../views/ol/lc-aqi'
 Vue.use(Router)
 let base = `${process.env.BASE_URL}` // 动态获取二级目录
 const router =  new Router({
     mode: "history",
     base: base,
-    routers: [
+    routes: [
         {
             path: '/',
             name: 'home',

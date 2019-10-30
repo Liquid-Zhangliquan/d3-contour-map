@@ -17,6 +17,7 @@ export default {
   name: 'app',
   components: {},
   mounted() {
+    console.log('mounted')
     this.mapInit();
   },
   methods: {
@@ -243,14 +244,6 @@ export default {
 </script>
 
 <style>
-html,
-body {
-  width: 100%;
-  height: 100%;
-  padding: 0px;
-  margin: 0px;
-  overflow: hidden;
-}
 #olmap {
   width: 100%;
   height: 100%;
