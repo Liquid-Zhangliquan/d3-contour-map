@@ -3,21 +3,21 @@
 </template>
 
 <script>
-import "ol/ol.css";
-import Map from "ol/Map.js";
-import View from "ol/View.js";
-import TileLayer from "ol/layer/Tile.js";
-import OSM from "ol/source/OSM";
-import Image from "ol/layer/Image";
-import ImageCanvas from "ol/source/ImageCanvas";
-import * as d3 from "d3";
-import * as DC from "d3-contour";
-import Regioncoord from "../../../util/mapBorder/lc";
+import 'ol/ol.css';
+import Map from 'ol/Map.js';
+import View from 'ol/View.js';
+import TileLayer from 'ol/layer/Tile.js';
+import OSM from 'ol/source/OSM';
+import Image from 'ol/layer/Image';
+import ImageCanvas from 'ol/source/ImageCanvas';
+import * as d3 from 'd3';
+import * as DC from 'd3-contour';
+import Regioncoord from '../../../util/mapBorder/lc';
 export default {
-  name: "ol-lc",
+  name: 'ol-lc',
   components: {},
   mounted() {
-    console.log("mounted");
+    console.log('mounted');
     this.mapInit();
   },
   methods: {
@@ -30,14 +30,14 @@ export default {
 
       const map = new Map({
         layers: layers,
-        target: "olmap",
+        target: 'olmap',
         view: new View({
           center: [115.79, 36.142],
-          projection: "EPSG:4326",
+          projection: 'EPSG:4326',
           zoom: 8
         })
       });
-      fetch("/data/aqi.json").then(response => {
+      fetch('/data/aqi.json').then(response => {
         response.json().then(res => {
           const data = res.data;
           this.contourInit(map, data);
@@ -57,46 +57,20 @@ export default {
       // 3）region的extent(xmax-xmin,ymax-ymin)计算插值，然后canvas偏移至（xmin,ymin)
       const canvasLayer = new Image({
         source: new ImageCanvas({
-          canvasFunction: (
-            extent,
-            resolution,
-            pixelRatio,
-            size,
-            projection
-          ) => {
+          canvasFunction: (extent, resolution, pixelRatio, size, projection) => {
             const [width, height] = size;
             const [left, bottom, right, top] = extent;
             const xscale = width / (right - left);
             const yscale = height / (top - bottom);
-            const pxregion = getPxRegion(
-              Regioncoord,
-              xscale,
-              yscale,
-              top,
-              left
-            );
+            const pxregion = getPxRegion(Regioncoord, xscale, yscale, top, left);
             const cw = Math.ceil(pxregion.xmax - pxregion.xmin);
             const ch = Math.ceil(pxregion.ymax - pxregion.ymin);
 
-            const regionTopLeft = pointToCoord(
-              pxregion.xmin,
-              pxregion.ymin,
-              xscale,
-              yscale,
-              top,
-              left
-            );
+            const regionTopLeft = pointToCoord(pxregion.xmin, pxregion.ymin, xscale, yscale, top, left);
             const _left = regionTopLeft[0];
             const _top = regionTopLeft[1];
 
-            const regionBottomRight = pointToCoord(
-              pxregion.xmax,
-              pxregion.ymax,
-              xscale,
-              yscale,
-              top,
-              left
-            );
+            const regionBottomRight = pointToCoord(pxregion.xmax, pxregion.ymax, xscale, yscale, top, left);
             const _right = regionBottomRight[0];
             const _bottom = regionBottomRight[1];
 
@@ -107,13 +81,13 @@ export default {
             const pxdata = getPxData(origindata, _xscale, _yscale, _top, _left);
 
             const idwdata = olIDW(pxdata.data, cw, ch);
-            let canvas = document.createElement("canvas");
+            let canvas = document.createElement('canvas');
             canvas.width = Math.ceil(pxregion.xmax);
             canvas.height = Math.ceil(pxregion.ymax);
-            canvas.style.display = "block";
+            canvas.style.display = 'block';
             //设置canvas透明度
-            canvas.getContext("2d").globalAlpha = 0.1;
-            let context = canvas.getContext("2d");
+            canvas.getContext('2d').globalAlpha = 0.1;
+            let context = canvas.getContext('2d');
             let contours = DC.contours().size([cw, ch]); //等高线绘图实例
             let d3Path = d3.geoPath(null, context); //绘图笔
             context.clearRect(0, 0, cw, ch);
@@ -173,14 +147,7 @@ export default {
               let ymin = 9999;
               let len = data.length;
               for (let i = 0; i < len; i++) {
-                const p = coordToPoint(
-                  data[i].lon,
-                  data[i].lat,
-                  xscale,
-                  yscale,
-                  top,
-                  left
-                );
+                const p = coordToPoint(data[i].lon, data[i].lat, xscale, yscale, top, left);
                 if (i === 0) {
                   xmax = p[0];
                   ymax = p[1];
@@ -215,14 +182,7 @@ export default {
               let xmin = 9999;
               let ymin = 9999;
               for (let i = 0; i < data.length; i++) {
-                const p = coordToPoint(
-                  data[i][0],
-                  data[i][1],
-                  xscale,
-                  yscale,
-                  top,
-                  left
-                );
+                const p = coordToPoint(data[i][0], data[i][1], xscale, yscale, top, left);
                 if (i === 0) {
                   xmax = p[0];
                   ymax = p[1];
@@ -248,8 +208,12 @@ export default {
             }
 
             function coordToPoint(x, y, xscale, yscale, top, left) {
-              var px = Math.abs(left - x) * xscale;
-              var py = Math.abs(top - y) * yscale;
+              // var px = Math.abs(left - x) * xscale;
+              // var py = Math.abs(top - y) * yscale;
+              let px = (x - left) * xscale;
+              let py = (top - y) * yscale;
+              px > 0 ? null : (px = 0);
+              py > 0 ? null : (py = 0);
               return [px, py];
             }
 
@@ -265,7 +229,7 @@ export default {
 
               //已有点初始二维数组
               var dlen = d.length;
-              var matrixData = []
+              var matrixData = [];
               // for (var i = 0; i < dlen; i++) {
               //     var point = d[i];
               //     matrixData[point.y * width + point.x] = point.value;
@@ -282,21 +246,21 @@ export default {
                       sum1 = 0;
                     for (var k = 0; k < dlen; k++) {
                       var dk = d[k];
-                    var dis = Math.pow(i - dk.y, 2) + Math.pow(j - dk.x, 2);
+                      var dis = Math.pow(i - dk.y, 2) + Math.pow(j - dk.x, 2);
                       sum0 = sum0 + (dk.value * 1) / dis;
                       sum1 = sum1 + 1 / dis;
                       idwcount++;
                     }
                     if (sum1 != 0)
                       //matrixData[k1] = sum0 / sum1 - referenceValue;
-                       matrixData.push(sum0 / sum1);
-                    else   matrixData.push(1);
+                      matrixData.push(sum0 / sum1);
+                    else matrixData.push(1);
                   }
                 }
               }
               console.log(idwcount);
               var e = new Date().getTime();
-              console.log("插值：" + (e - s) / 1000 + "秒");
+              console.log('插值：' + (e - s) / 1000 + '秒');
               return matrixData;
             }
 
@@ -304,16 +268,12 @@ export default {
               var len = colors.length;
               for (var i = 0; i < len; i++) {
                 if (value > colors[i].min && value <= colors[i].max)
-                  return d3.rgb(
-                    colors[i].color[0],
-                    colors[i].color[1],
-                    colors[i].color[2]
-                  );
+                  return d3.rgb(colors[i].color[0], colors[i].color[1], colors[i].color[2]);
               }
             }
             return canvas;
           },
-          projection: "EPSG:4326",
+          projection: 'EPSG:4326',
           ratio: 1
         })
       });

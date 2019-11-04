@@ -3,18 +3,18 @@
 </template>
 
 <script>
-import "ol/ol.css";
-import Map from "ol/Map.js";
-import View from "ol/View.js";
-import TileLayer from "ol/layer/Tile.js";
-import OSM from "ol/source/OSM";
-import Image from "ol/layer/Image";
-import ImageCanvas from "ol/source/ImageCanvas";
-import * as d3 from "d3";
-import * as DC from "d3-contour";
-import Regioncoord from "../../../util/mapBorder/gx";
+import 'ol/ol.css';
+import Map from 'ol/Map.js';
+import View from 'ol/View.js';
+import TileLayer from 'ol/layer/Tile.js';
+import OSM from 'ol/source/OSM';
+import Image from 'ol/layer/Image';
+import ImageCanvas from 'ol/source/ImageCanvas';
+import * as d3 from 'd3';
+import * as DC from 'd3-contour';
+import Regioncoord from '../../../util/mapBorder/gx';
 export default {
-  name: "ol-gx",
+  name: 'ol-gx',
   components: {},
   mounted() {
     this.mapInit();
@@ -29,14 +29,14 @@ export default {
 
       const map = new Map({
         layers: layers,
-        target: "olmap",
+        target: 'olmap',
         view: new View({
           center: [108.22, 22.48],
-          projection: "EPSG:4326",
+          projection: 'EPSG:4326',
           zoom: 7
         })
       });
-      fetch("/data/TEM.json").then(response => {
+      fetch('/data/TEM.json').then(response => {
         response.json().then(res => {
           const data = res.data;
           this.contourInit(map, data);
@@ -46,13 +46,7 @@ export default {
     contourInit(map, origindata) {
       const canvasLayer = new Image({
         source: new ImageCanvas({
-          canvasFunction: (
-            extent,
-            resolution,
-            pixelRatio,
-            size,
-            projection
-          ) => {
+          canvasFunction: (extent, resolution, pixelRatio, size, projection) => {
             const [width, height] = size;
             // const _map = map;
             // const mapsize = _map.getSize();
@@ -61,37 +55,17 @@ export default {
             const [left, bottom, right, top] = extent;
             const xscale = width / (right - left);
             const yscale = height / (top - bottom);
-            const pxregion = getPxRegion(
-              Regioncoord,
-              xscale,
-              yscale,
-              top,
-              left
-            );
+            const pxregion = getPxRegion(Regioncoord, xscale, yscale, top, left);
             const cw = Math.ceil(pxregion.xmax - pxregion.xmin);
             const ch = Math.ceil(pxregion.ymax - pxregion.ymin);
             // const cw = Math.ceil(pxregion.xmax)
             // const ch = Math.ceil(pxregion.ymax)
 
-            const regionTopLeft = pointToCoord(
-              pxregion.xmin,
-              pxregion.ymin,
-              xscale,
-              yscale,
-              top,
-              left
-            );
+            const regionTopLeft = pointToCoord(pxregion.xmin, pxregion.ymin, xscale, yscale, top, left);
             const _left = regionTopLeft[0];
             const _top = regionTopLeft[1];
 
-            const regionBottomRight = pointToCoord(
-              pxregion.xmax,
-              pxregion.ymax,
-              xscale,
-              yscale,
-              top,
-              left
-            );
+            const regionBottomRight = pointToCoord(pxregion.xmax, pxregion.ymax, xscale, yscale, top, left);
             const _right = regionBottomRight[0];
             const _bottom = regionBottomRight[1];
 
@@ -103,27 +77,20 @@ export default {
 
             const idwdata = olIDW(pxdata.data, cw, ch);
             // const idwdata = [];
-            let canvas = document.createElement("canvas");
+            let canvas = document.createElement('canvas');
             canvas.width = Math.ceil(pxregion.xmax);
             canvas.height = Math.ceil(pxregion.ymax);
-            canvas.style.display = "block";
+            canvas.style.display = 'block';
             //设置canvas透明度
-            canvas.getContext("2d").globalAlpha = 0.1;
-            let context = canvas.getContext("2d");
+            canvas.getContext('2d').globalAlpha = 0.1;
+            let context = canvas.getContext('2d');
             let contours = DC.contours().size([cw, ch]); //等高线绘图实例
             let d3Path = d3.geoPath(null, context); //绘图笔
             context.clearRect(0, 0, cw, ch);
             // 绘制裁剪区
             context.beginPath();
             for (let i = 0; i < Regioncoord.length; i++) {
-              const rp = coordToPoint(
-                Regioncoord[i][0],
-                Regioncoord[i][1],
-                xscale,
-                yscale,
-                top,
-                left
-              );
+              const rp = coordToPoint(Regioncoord[i][0], Regioncoord[i][1], xscale, yscale, top, left);
               context.lineTo(rp[0], rp[1]);
             }
             context.closePath();
@@ -137,44 +104,44 @@ export default {
             context.translate(pxregion.xmin, pxregion.ymin);
 
             const colors = [
-              { max: -30, color: "#020c64" },
-              { min: -30, max: -28, color: "#071e78" },
-              { min: -28, max: -26, color: "#11318b" },
-              { min: -26, max: -24, color: "#1b449f" },
-              { min: -24, max: -22, color: "#2657b3" },
-              { min: -22, max: -20, color: "#306ac7" },
-              { min: -20, max: -18, color: "#3b7edb" },
-              { min: -20, max: -18, color: "#3b7edb" },
-              { min: -18, max: -16, color: "#4e8add" },
-              { min: -16, max: -14, color: "#6196e0" },
-              { min: -14, max: -12, color: "#74a3e2" },
-              { min: -12, max: -10, color: "#87afe5" },
-              { min: -10, max: -8, color: "#9bbce8" },
-              { min: -8, max: -6, color: "#9ac4dc" },
-              { min: -6, max: -4, color: "#99cdd0" },
-              { min: -4, max: -2, color: "#98d6c4" },
-              { min: -2, max: 0, color: "#97e8ad" },
-              { min: 0, max: 2, color: "#d7de7e" },
-              { min: 2, max: 4, color: "#eadb70" },
-              { min: 4, max: 6, color: "#f4d963" },
-              { min: 6, max: 8, color: "#facc4f" },
-              { min: 8, max: 10, color: "#f7b42d" },
-              { min: 10, max: 12, color: "#f29b00" },
-              { min: 12, max: 14, color: "#f19303" },
-              { min: 14, max: 16, color: "#f0840a" },
-              { min: 16, max: 18, color: "#ef7511" },
-              { min: 18, max: 20, color: "#ee6618" },
-              { min: 20, max: 22, color: "#ee581f" },
-              { min: 22, max: 24, color: "#e74b1a" },
-              { min: 24, max: 26, color: "#e03f16" },
-              { min: 26, max: 28, color: "#d93312" },
-              { min: 28, max: 30, color: "#d0240e" },
-              { min: 30, max: 32, color: "#c20003" },
-              { min: 32, max: 34, color: "#b50109" },
-              { min: 34, max: 35, color: "#a90210" },
-              { min: 35, max: 37, color: "#8a0519" },
-              { min: 37, max: 40, color: "#6f0015" },
-              { min: 40, color: "#6f0015" }
+              { max: -30, color: '#020c64' },
+              { min: -30, max: -28, color: '#071e78' },
+              { min: -28, max: -26, color: '#11318b' },
+              { min: -26, max: -24, color: '#1b449f' },
+              { min: -24, max: -22, color: '#2657b3' },
+              { min: -22, max: -20, color: '#306ac7' },
+              { min: -20, max: -18, color: '#3b7edb' },
+              { min: -20, max: -18, color: '#3b7edb' },
+              { min: -18, max: -16, color: '#4e8add' },
+              { min: -16, max: -14, color: '#6196e0' },
+              { min: -14, max: -12, color: '#74a3e2' },
+              { min: -12, max: -10, color: '#87afe5' },
+              { min: -10, max: -8, color: '#9bbce8' },
+              { min: -8, max: -6, color: '#9ac4dc' },
+              { min: -6, max: -4, color: '#99cdd0' },
+              { min: -4, max: -2, color: '#98d6c4' },
+              { min: -2, max: 0, color: '#97e8ad' },
+              { min: 0, max: 2, color: '#d7de7e' },
+              { min: 2, max: 4, color: '#eadb70' },
+              { min: 4, max: 6, color: '#f4d963' },
+              { min: 6, max: 8, color: '#facc4f' },
+              { min: 8, max: 10, color: '#f7b42d' },
+              { min: 10, max: 12, color: '#f29b00' },
+              { min: 12, max: 14, color: '#f19303' },
+              { min: 14, max: 16, color: '#f0840a' },
+              { min: 16, max: 18, color: '#ef7511' },
+              { min: 18, max: 20, color: '#ee6618' },
+              { min: 20, max: 22, color: '#ee581f' },
+              { min: 22, max: 24, color: '#e74b1a' },
+              { min: 24, max: 26, color: '#e03f16' },
+              { min: 26, max: 28, color: '#d93312' },
+              { min: 28, max: 30, color: '#d0240e' },
+              { min: 30, max: 32, color: '#c20003' },
+              { min: 32, max: 34, color: '#b50109' },
+              { min: 34, max: 35, color: '#a90210' },
+              { min: 35, max: 37, color: '#8a0519' },
+              { min: 37, max: 40, color: '#6f0015' },
+              { min: 40, color: '#6f0015' }
             ];
 
             //绘图登高线图
@@ -208,14 +175,7 @@ export default {
               let ymin = 9999;
               let len = data.length;
               for (let i = 0; i < len; i++) {
-                const p = coordToPoint(
-                  data[i].Lon,
-                  data[i].Lat,
-                  xscale,
-                  yscale,
-                  top,
-                  left
-                );
+                const p = coordToPoint(data[i].Lon, data[i].Lat, xscale, yscale, top, left);
                 if (i === 0) {
                   xmax = p[0];
                   ymax = p[1];
@@ -250,14 +210,7 @@ export default {
               let xmin = 9999;
               let ymin = 9999;
               for (let i = 0; i < data.length; i++) {
-                const p = coordToPoint(
-                  data[i][0],
-                  data[i][1],
-                  xscale,
-                  yscale,
-                  top,
-                  left
-                );
+                const p = coordToPoint(data[i][0], data[i][1], xscale, yscale, top, left);
                 if (i === 0) {
                   xmax = p[0];
                   ymax = p[1];
@@ -288,8 +241,12 @@ export default {
               return [x, y];
             }
             function coordToPoint(x, y, xscale, yscale, top, left) {
-              var px = Math.abs(left - x) * xscale;
-              var py = Math.abs(top - y) * yscale;
+              // var px = Math.abs(left - x) * xscale;
+              // var py = Math.abs(top - y) * yscale;
+              let px = (x - left) * xscale;
+              let py = (top - y) * yscale;
+              px > 0 ? null : (px = 0);
+              py > 0 ? null : (py = 0);
               return [px, py];
             }
 
@@ -330,7 +287,7 @@ export default {
               }
               console.log(idwcount);
               var e = new Date().getTime();
-              console.log("插值：" + (e - s) / 1000 + "秒");
+              console.log('插值：' + (e - s) / 1000 + '秒');
               return matrixData;
             }
 
@@ -353,24 +310,22 @@ export default {
               // 如果是16进制颜色
               if (sColor && reg.test(sColor)) {
                 if (sColor.length === 4) {
-                  let sColorNew = "#";
+                  let sColorNew = '#';
                   for (let i = 1; i < 4; i += 1) {
-                    sColorNew += sColor
-                      .slice(i, i + 1)
-                      .concat(sColor.slice(i, i + 1));
+                    sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
                   }
                   sColor = sColorNew;
                 }
 
                 for (let i = 1; i < 7; i += 2) {
-                  sColorChange.push(parseInt("0x" + sColor.slice(i, i + 2)));
+                  sColorChange.push(parseInt('0x' + sColor.slice(i, i + 2)));
                 }
               }
               return sColorChange;
             }
             return canvas;
           },
-          projection: "EPSG:4326",
+          projection: 'EPSG:4326',
           ratio: 1
         })
       });
