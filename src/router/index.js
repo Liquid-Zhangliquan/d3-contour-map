@@ -15,6 +15,11 @@ const router =  new Router({
             path: '/gx',
             name: 'gx',
             component: () => import('../views/ol/gx-tem')
+        },
+        {
+            path: '/gx-cluster',
+            name: 'gx-cluster',
+            component: () => import('../views/ol/gx-cluster-tem')
         }
     ]
 })
