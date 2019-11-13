@@ -179,10 +179,16 @@ export default {
               { min: 37, max: 40, color: '#6f0015' },
               { min: 40, color: '#6f0015' }
             ];
+            const step = colors[1].max - colors[1].min;
+            const stepLen = (pxdata.vmax - pxdata.vmin) / step + 1;
+            const thresholds = [];
+            for (let i = 0; i < stepLen; i++) {
+              thresholds.push(pxdata.vmin + step * i);
+            }
 
             //绘图登高线图
             contours
-              .thresholds(3)(idwdata)
+              .thresholds(thresholds)(idwdata)
               .forEach(fill);
 
             //绘图一条等高线
@@ -207,24 +213,36 @@ export default {
               const _data = [];
               let xmax = 0;
               let ymax = 0;
-              let xmin = 9999;
-              let ymin = 9999;
+              let xmin = 999999;
+              let ymin = 999999;
+              let vmax = 0;
+              let vmin = 999999;
               let len = data.length;
               for (let i = 0; i < len; i++) {
-                const p = coordToPoint(data[i].geometry.coordinates[0], data[i].geometry.coordinates[1], xscale, yscale, top, left);
+                const p = coordToPoint(
+                  data[i].geometry.coordinates[0],
+                  data[i].geometry.coordinates[1],
+                  xscale,
+                  yscale,
+                  top,
+                  left
+                );
                 if (i === 0) {
                   xmax = p[0];
                   ymax = p[1];
                 }
                 if (p[0] != 0 || p[1] != 0) {
+                  const _value = Number(data[i].properties.value);
                   xmax > p[0] ? null : (xmax = p[0]);
                   ymax > p[1] ? null : (ymax = p[1]);
                   xmin < p[0] ? null : (xmin = p[0]);
                   ymin < p[1] ? null : (ymin = p[1]);
+                  vmax > _value ? null : (vmax = _value);
+                  vmin < _value ? null : (vmin = _value);
                   _data.push({
                     x: p[0],
                     y: p[1],
-                    value: Number(data[i].properties.value)
+                    value: _value
                   });
                 }
               }
@@ -233,7 +251,9 @@ export default {
                 xmax: xmax,
                 ymax: ymax,
                 xmin: xmin,
-                ymin: ymin
+                ymin: ymin,
+                vmax: Math.floor(vmax),
+                vmin: Math.floor(vmin)
               };
             }
 
